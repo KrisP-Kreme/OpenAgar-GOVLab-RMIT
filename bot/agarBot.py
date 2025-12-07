@@ -22,7 +22,7 @@ class agarBot(ABC):
             "y": 0,
         }
         """Movement vector with x and y component"""
-        self.sio = socketio.Client()
+        self.sio = socketio.Client(engineio_logger=True, logger=True)
         """Socket IO Object"""
         self.position = {
             "x" : 0,
@@ -93,7 +93,11 @@ class agarBot(ABC):
 
     def run(self):
         url_with_query = f"{SERVER_URL}?type=player"
-        self.sio.connect(url_with_query)
+        self.sio.connect(
+            SERVER_URL,
+            transports=['websocket'],
+            socketio_path="/socket.io"
+        )
         
         # start heartbeat thread
         def heartbeatLoop():
