@@ -28,6 +28,7 @@ let app = express();
 const PORTAL_ORIGIN = process.env.PORTAL_ORIGIN || "https://krisp-kreme.vercel.app/";
 
 app.use((req, res, next) => {
+    res.removeHeader("X-Frame-Options");
   res.setHeader('Content-Security-Policy', `frame-ancestors 'self' ${PORTAL_ORIGIN}`);
   // res.setHeader('X-Content-Type-Options', 'nosniff');
   // res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
