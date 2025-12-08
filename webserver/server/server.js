@@ -25,6 +25,15 @@ const networkConfig = config.get('network')
 
 let app = express();
 
+const PORTAL_ORIGIN = process.env.PORTAL_ORIGIN || "https://https://krisp-kreme.vercel.app/";
+
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', `frame-ancestors 'self' ${PORTAL_ORIGIN}`);
+  // res.setHeader('X-Content-Type-Options', 'nosniff');
+  // res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+  next();
+});
+
 app.get('/', (req, res) => {
     res.sendFile(new URL('./../client/index.html', import.meta.url).pathname);
 });
@@ -63,6 +72,38 @@ app.use('/js', express.static(__dirname + '/../client/js'));
 app.use('/audio', express.static(__dirname + '/../client/audio'));
 app.use('/css', express.static(__dirname + '/../client/css'));
 app.use('/img', express.static(__dirname + '/../client/img'));
+
+const BOT_INTERNAL_HOST = process.env.BOT_INTERNAL_HOST || "openagar-govlab-rmit.railway.internal";
+const BOT_INTERNAL_PORT = process.env.BOT_INTERNAL_PORT || "5000";
+const BOT_API_PATH = process.env.BOT_API_PATH || "/start-bots";
+const BOT_START_TOKEN = process.env.BOT_START_TOKEN || "changeme";
+
+app.post('/api/start-bots', express.json(), async (req, res) => {
+  const auth = req.headers['authorization'] || "";
+  if (auth !== `Bearer ${BOT_START_TOKEN}`) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+
+  const botUrl = `http://${BOT_INTERNAL_HOST}:${BOT_INTERNAL_PORT}${BOT_API_PATH}`;
+
+  try {
+    const BOT_API_TOKEN = process.env.BOT_API_TOKEN || "";
+    const response = await fetch(botUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${BOT_API_TOKEN}`
+      },
+      body: JSON.stringify(req.body || {})
+    });
+
+    const json = await response.json().catch(() => ({}));
+    return res.status(response.status).json(json);
+  } catch (err) {
+    console.error("Error proxying to bot service:", err);
+    return res.status(500).json({ error: 'failed to start bots', detail: err.message });
+  }
+});
 
 
 io.on('connection', (socket) => {
