@@ -25,7 +25,7 @@ const networkConfig = config.get('network')
 
 let app = express();
 
-const PORTAL_ORIGIN = process.env.PORTAL_ORIGIN || "https://https://krisp-kreme.vercel.app/";
+const PORTAL_ORIGIN = process.env.PORTAL_ORIGIN || "https://krisp-kreme.vercel.app/";
 
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', `frame-ancestors 'self' ${PORTAL_ORIGIN}`);

@@ -8,6 +8,7 @@ BOT_CONTROLLER_CMD = ["python", "./bot_controller.py", "-s", "./bot_fsm.py", "6"
 
 @app.route("/start-bots", methods=["POST"])
 def start_bots():
+    print(">>>> /start-bots called")
     token = request.headers.get("Authorization", "")
     if token != f"Bearer {BOT_API_TOKEN}":
         return jsonify({"error":"unauthorized"}), 401
