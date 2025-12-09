@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import os, threading, subprocess
 
 app = Flask(__name__)
@@ -25,6 +25,12 @@ def start_bots():
         return jsonify({"status":"started", "count": count}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.after_request
+def add_headers(response):
+    response.headers["X-Frame-Options"] = "ALLOWALL"
+    response.headers["Content-Security-Policy"] = "frame-ancestors *"
+    return response
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
