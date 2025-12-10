@@ -23,12 +23,16 @@ def start_bots():
 
     try:
         cmd = ["python", "./bot_controller.py", "-s", script, str(count)]
-        p = Popen(cmd)
+
+        # Create a new process group
+        p = Popen(cmd, preexec_fn=os.setsid)
+
         processes.append(p)
 
         return jsonify({"status":"started", "count": count}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/stop-bots", methods=["POST"])
@@ -40,15 +44,17 @@ def stop_bots():
         return jsonify({"error":"unauthorized"}), 401
 
     killed = 0
-
     for p in processes:
         try:
-            os.killpg(os.getpgid(p.pid), signal.SIGTERM)
+            pgid = os.getpgid(p.pid)
+            os.killpg(pgid, signal.SIGTERM)
             killed += 1
         except:
             pass
 
     processes = []
+
+    print(f"Killed {killed} bot groups")
 
     return jsonify({"status": "stopped", "count": killed}), 200
 

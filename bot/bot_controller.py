@@ -46,5 +46,3 @@ for script, quantity in valid_script_dict.items():
             subprocess.Popen(['python', script])
         )
     
-    for thread in thread_list:
-        thread.wait()
