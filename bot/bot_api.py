@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify, Response
 import os, threading, subprocess
+from subprocess import Popen
+import signal
 
 app = Flask(__name__)
 
@@ -25,6 +27,27 @@ def start_bots():
         return jsonify({"status":"started", "count": count}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stop-bots", methods=["POST"])
+def stop_bots():
+    token = request.headers.get("Authorization", "")
+    if token != f"Bearer {BOT_API_TOKEN}":
+        return jsonify({"error":"unauthorized"}), 401
+
+    killed = 0
+
+    global processes
+    for p in processes:
+        try:
+            p.terminate()
+            killed += 1
+        except Exception:
+            pass
+
+    processes = []  # clear list
+
+    return jsonify({"status": "stopped", "count": killed}), 200
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
