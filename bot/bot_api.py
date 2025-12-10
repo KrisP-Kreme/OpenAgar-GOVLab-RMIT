@@ -26,11 +26,5 @@ def start_bots():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.after_request
-def add_headers(response):
-    response.headers["X-Frame-Options"] = "ALLOWALL"
-    response.headers["Content-Security-Policy"] = "frame-ancestors *"
-    return response
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

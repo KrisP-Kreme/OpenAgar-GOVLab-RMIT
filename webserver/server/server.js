@@ -25,11 +25,18 @@ const networkConfig = config.get('network')
 
 let app = express();
 
-const PORTAL_ORIGIN = process.env.PORTAL_ORIGIN || "https://krisp-kreme.vercel.app/";
+const PORTAL_ORIGIN = process.env.PORTAL_ORIGIN || "https://krisp-kreme.vercel.app";
 
 app.use((req, res, next) => {
     res.removeHeader("X-Frame-Options");
-  res.setHeader('Content-Security-Policy', `frame-ancestors 'self' ${PORTAL_ORIGIN}`);
+  res.setHeader(
+  "Content-Security-Policy",
+  `frame-ancestors 'self' ${PORTAL_ORIGIN} ${PORTAL_ORIGIN}/`
+    );
+    res.setHeader(
+    "Content-Security-Policy",
+    `connect-src 'self' wss://keen-radiance-production.up.railway.app https://keen-radiance-production.up.railway.app`
+    );
   // res.setHeader('X-Content-Type-Options', 'nosniff');
   // res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
   next();
