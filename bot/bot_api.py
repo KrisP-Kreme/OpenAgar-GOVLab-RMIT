@@ -8,6 +8,8 @@ app = Flask(__name__)
 BOT_API_TOKEN = os.environ.get("BOT_API_TOKEN", "topsecret")
 BOT_CONTROLLER_CMD = ["python", "./bot_controller.py", "-s", "./bot_fsm.py", "6"]
 
+processes = []
+
 @app.route("/start-bots", methods=["POST"])
 def start_bots():
     print(">>>> /start-bots called")
@@ -21,9 +23,9 @@ def start_bots():
 
     try:
         cmd = ["python", "./bot_controller.py", "-s", script, str(count)]
-        thread = threading.Thread(target=subprocess.run, args=(cmd,), kwargs={"check":False})
-        thread.daemon = True
-        thread.start()
+        p = Popen(cmd)
+        processes.append(p)
+
         return jsonify({"status":"started", "count": count}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -31,21 +33,22 @@ def start_bots():
 
 @app.route("/stop-bots", methods=["POST"])
 def stop_bots():
+    global processes
+
     token = request.headers.get("Authorization", "")
     if token != f"Bearer {BOT_API_TOKEN}":
         return jsonify({"error":"unauthorized"}), 401
 
     killed = 0
 
-    global processes
     for p in processes:
         try:
-            p.terminate()
+            os.killpg(os.getpgid(p.pid), signal.SIGTERM)
             killed += 1
-        except Exception:
+        except:
             pass
 
-    processes = []  # clear list
+    processes = []
 
     return jsonify({"status": "stopped", "count": killed}), 200
 
